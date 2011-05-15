@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jms="http://www.springframework.org/schema/jms"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:p="http://www.springframework.org/schema/p"
+
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+         http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-3.0.xsd
+         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+         http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd
+         http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+         http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd
+       ">
+
+  <import resource="classpath*:META-INF/cxf/cxf.xml" />
+  <import resource="classpath*:META-INF/cxf/cxf-extension-*.xml" />
+  
+  <bean
+    id="PrefetchExperimentServiceImpl"
+    class="com.bluesoft.test.prefetch.PrefetchExperimentServiceImpl"/>
+    
+  <jaxws:endpoint
+    id="PrefetchExperimentServiceEndpointHttp"
+	publish="true"
+    address="http://localhost:9001/prefetch"
+    endpointName="tns:PrefetchExperiment"
+	serviceName="tns:PrefetchExperimentService"
+	implementor="#PrefetchExperimentServiceImpl"
+    xmlns:tns="http://bluesoft.com/ws/prefetch">
+    <jaxws:features>
+      <!-- bean class="org.apache.cxf.feature.LoggingFeature"/ -->
+    </jaxws:features>
+  </jaxws:endpoint>
+
+  <!-- ====================== -->
+  <!-- Endpoint that uses JMS -->
+  <!-- ====================== -->
+  <jaxws:endpoint
+    id="PrefetchExperimentServiceEndpoint"
+	publish="true"
+    address="jms://"
+    endpointName="tns:PrefetchExperiment"
+	serviceName="tns:PrefetchExperimentService"
+	implementor="#PrefetchExperimentServiceImpl"
+    xmlns:tns="http://bluesoft.com/ws/prefetch">
+    <jaxws:features>
+      <bean class="org.apache.cxf.transport.jms.JMSConfigFeature">
+        <property name="jmsConfig">
+          <bean class="org.apache.cxf.transport.jms.JMSConfiguration">
+            <property name="connectionFactory" ref="connectionFactory" />
+            <property name="targetDestination" value="JMS/PREFETCH.EXPERIMENT.REQ" />
+            <property name="receiveTimeout" value="2000" />
+            <property name="timeToLive" value="2000" />
+            <property name="recoveryInterval" value="5000" />
+            <property name="maxConcurrentConsumers" value="30" />
+            <property name="concurrentConsumers" value="10" />
+            <property name="explicitQosEnabled" value="false" />
+            <property name="deliveryMode" value="1" />
+            <property name="useJms11" value="true" />
+          </bean>
+        </property>
+      </bean>
+    </jaxws:features>
+  </jaxws:endpoint>
+
+
+  <bean
+    id="connectionFactory"
+    class="org.springframework.jms.connection.CachingConnectionFactory"
+    depends-on="AMQBroker"
+    scope="prototype" 
+    p:targetConnectionFactory-ref="amqConnectionFactory"
+    p:reconnectOnException="true"/>
+
+  <bean
+    id="amqConnectionFactory"
+    class="org.apache.activemq.ActiveMQConnectionFactory"
+    p:brokerURL="tcp://localhost:61616" />
+
+  <amq:broker id="AMQBroker" useJmx="false" persistent="false">
+    <amq:transportConnectors>
+      <amq:transportConnector uri="tcp://localhost:61616?jms.prefetchPolicy.all=0" />
+    </amq:transportConnectors>
+  </amq:broker>
+  <!--
+  -->
+</beans>
