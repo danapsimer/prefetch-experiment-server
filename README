@@ -1,0 +1,34 @@
+==========================
+Prefetch Experiment Server
+==========================
+
+OVERVIEW
+
+This server exposes a simple SOAP service that can be used to explore settings that
+affect service performance that are outside the actual processing.  The idea is to
+measure the time spent in infrastructure and examine the affect of various settings
+and what limits the server can handle given certain settings.
+
+The original intent was to explore the effect of the prefetch setting in the AMQ 
+connection URLs.  The prefetch determines the maximum number of messages that will be
+dispatch to a consumer from the queue with each interaction between the consumer and
+the AMQ server.  Once a message is on the prefetch queue, it cannot be processed by
+another consumer.  Therefore any messages sent to a particular consumer must wait for
+any previously dispatch messages to be processed.  In a SOAP over JMS environment this
+causes a percentage of messages to expire unless their timeout is set exceptionally
+high.  In a high throughput system this is not acceptable.
+
+The experiment was designed to test the affects of prefetch and after running several
+tests, a prefetch of 0 seems to produce the best performance.  Unfortunately, since that
+means that no messages will be prefetched, the consumer will poll for the messages as
+it becomes available and incur the network latency and overhead for each message seperately.
+This is what prefetch was designed to avoid.
+
+This experiment was run locally without any network overhead.  Many environments use a
+remote AMQ instance between the client and server.  In this case, it may be best to have
+a local AMQ for each server instances, possibly embedded in the server, that will be 
+configured to pull messages for the needed Queues to the local server with a prefetch 
+equal to the number of consumer threads.  Further experiments would have to be run to
+determine if this is a good idea.
+
+
