@@ -23,6 +23,7 @@ public class PrefetchExperimentServiceImpl implements PrefetchExperimentService 
   @Override
   public PrefetchExperimentResponse ping(PrefetchExperimentRequest request) {
     sLogger.debug("in ping: request = {}", request);
+    sLogger.info("processing request sent at: {}",request.getSent());
     PrefetchExperimentResponse response = new PrefetchExperimentResponse();
     try {
       response.setRequestReceived(new Date());
@@ -30,7 +31,7 @@ public class PrefetchExperimentServiceImpl implements PrefetchExperimentService 
       response.setRequestSent(request.getSent());
       response.setJunkPayload(randomString(1000 + random.nextInt(10000)));
       try {
-        Thread.sleep(200L + random.nextInt(800));
+        Thread.sleep(1000);
       } catch (InterruptedException ex) {
         // ignore it.
       }

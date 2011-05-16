@@ -25,7 +25,14 @@
   <bean
     id="PrefetchExperimentServiceImpl"
     class="com.bluesoft.test.prefetch.PrefetchExperimentServiceImpl"/>
-    
+
+  <httpj:engine-factory bus="cxf">
+    <httpj:engine port="9001">
+	  <httpj:threadingParameters minThreads="10" maxThreads="30"/>
+    </httpj:engine>
+  </httpj:engine-factory>
+
+ 
   <jaxws:endpoint
     id="PrefetchExperimentServiceEndpointHttp"
 	publish="true"
