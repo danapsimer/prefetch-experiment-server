@@ -91,7 +91,7 @@
     class="org.apache.activemq.ActiveMQConnectionFactory"
     p:brokerURL="tcp://localhost:61616" />
 
-  <amq:broker id="AMQBroker" useJmx="false" persistent="false">
+  <amq:broker id="AMQBroker" useJmx="true" persistent="false">
     <amq:transportConnectors>
       <amq:transportConnector uri="tcp://0.0.0.0:61616?jms.prefetchPolicy.all=0" />
     </amq:transportConnectors>
